@@ -1,0 +1,25 @@
+#cloud-config
+timezone: Europe/Moscow
+users:
+  - name: epam_leodorov
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnNKtufOi23ESMZPLKU6p6nS3tnFB+13LaSplCGlI2HFzLexwU9hnWKFixHeavRi0gFv1y1Xy0EWZ1dM/C8qAv4PPmqakfU8M2pEXq2kKaoz3MDJg8vBS01pSB77h+hH0cK6EmQql5grWttgydm/byJb3YKT3AJz+5jeUIX+Xdm3j2O6+SyYFjArz+LJTybIAfAUpEs9AEd7hZh70QY7ZUYfVIbc2fmgyY3mYWVKKTEKGHWp3dlQQajYEHTl0ykaiC11bjLxukvHHm6dufQ/ambZzNxgHeI4brawZnrrUbJvXOg0sGmwBfGYRCSuRQuzbL6BqTqm7mwLHvFbIVjWGb
+packages:
+  - dnsutils
+  - tree
+  - nfs-utils
+  - amazon-efs-utils #mount -t efs file-system-id efs-mount-point/ --- as option
+
+# mount EFS volume
+runcmd:
+ - [ sh, -c, "sudo service nfs start" ]
+ - [ sh, -c, "sudo mkdir -p /mnt/efs" ]
+ - [ sh, -c, "sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport '${addr}':/ /mnt/efs" ]
+ - [ sh, -c, "sudo su -c \"echo '${addr}:/ /mnt/efs nfs4 defaults,vers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport 0 0' >> /etc/fstab\"" ]
+
+# https://docs.aws.amazon.com/efs/latest/ug/gs-step-three-connect-to-ec2-instance.html
+# https://docs.aws.amazon.com/efs/latest/ug/efs-mount-helper.html#mount-multiple-ec2-instances
+# https://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-ip-addr.html
